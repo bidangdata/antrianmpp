@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Antrian Terpadu - DINPMP2KUKM Kabupaten Bangka</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Sistem Antrian Terpadu - DINPMP2KUKM MAL PELAYANAN PUBLIK Kabupaten Bangka</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- html2canvas untuk Fitur Download Tiket -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -52,7 +51,6 @@
             }
             body * { visibility: hidden; }
             
-            /* Target ID ticketResult yang sudah disatukan */
             #ticketResult, #ticketResult * { visibility: visible; }
             
             #ticketResult {
@@ -72,7 +70,6 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col justify-between">
 
-    <!-- Header Utama & Navigasi Tab -->
     <header class="bg-brand-500 text-white shadow-md sticky top-0 z-50 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center py-4 gap-4">
             <div class="flex items-center space-x-3 text-center md:text-left">
@@ -80,12 +77,11 @@
                     <i class="fa-solid me-0 fa-building-columns text-2xl text-amber-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-wide leading-tight">DINPMP2KUKM KABUPATEN BANGKA</h1>
-                    <p class="text-xs text-brand-100 font-medium">Sistem Antrian Pelayanan Terpadu & Real-Time</p>
+                    <h1 class="text-xl font-bold tracking-wide leading-tight">DINPMP2KUKM MAL PELAYANAN PUBLIK <br class="hidden md:block"/> KABUPATEN BANGKA</h1>
+                    <p class="text-xs text-brand-100 font-medium mt-1 md:mt-0">Sistem Antrian Pelayanan Terpadu & Real-Time</p>
                 </div>
             </div>
 
-            <!-- Tab Buttons -->
             <nav class="flex bg-brand-700/50 p-1.5 rounded-xl gap-1 text-sm font-semibold">
                 <button onclick="switchTab('public')" id="tabBtn-public" class="px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-white text-brand-500 shadow-sm">
                     <i class="fa-solid fa-ticket"></i> Ambil Antrian
@@ -100,7 +96,6 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
 
         <!-- TAB 1: FORM AMBIL ANTRIAN (PUBLIK) -->
@@ -115,7 +110,6 @@
                 <div class="p-6 md:p-8">
                     <form id="antrianForm" onsubmit="handleFormSubmit(event)" class="space-y-4 no-print">
                         
-                        <!-- Nama Lengkap (Urutan 1) -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1" for="nama">
                                 Nama Lengkap <span class="text-red-500">*</span>
@@ -129,7 +123,6 @@
                             </div>
                         </div>
 
-                        <!-- Alamat Lengkap (Urutan 2, Menggantikan NIK) -->
                         <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1" for="alamat">
                                 Alamat Lengkap <span class="text-red-500">*</span>
@@ -166,12 +159,26 @@
                                 </span>
                                 <select id="layanan" required class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm bg-white transition">
                                     <option value="">-- Pilih Jenis Layanan --</option>
-                                    <option value="A">A - Perizinan Usaha (OSS / NIB)</option>
-                                    <option value="B">B - Perizinan Non-Usaha / Sektor</option>
-                                    <option value="C">C - Konsultasi & Pengaduan</option>
-                                    <option value="D">D - Layanan Lainnya</option>
+                                    <option value="A">A - Perizinan (DINPMP2KUKM)</option>
+                                    <option value="B">B - BPJS Kesehatan</option>
+                                    <option value="C">C - Dinas Kesehatan</option>
+                                    <option value="D">D - Dinas Sosial</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1" for="rincianLayanan">
+                                Rincian Layanan <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                    <i class="fa-solid fa-pen"></i>
+                                </span>
+                                <input type="text" id="rincianLayanan" placeholder="Ketik rincian (cth: Perpanjang Izin Klinik)" required
+                                    class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition">
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Tuliskan keterangan detail layanan yang Anda tuju.</p>
                         </div>
 
                         <div>
@@ -186,20 +193,19 @@
                             </div>
                         </div>
 
-                        <button type="submit" id="btnSubmitForm" class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/30 transition duration-200 flex items-center justify-center gap-2">
+                        <button type="submit" id="btnSubmitForm" class="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/30 transition duration-200 flex items-center justify-center gap-2 mt-4">
                             <i class="fa-solid fa-paper-plane"></i> Ambil Nomor Antrian
                         </button>
                     </form>
 
-                    <!-- Card Tiket Antrian Hasil (Sudah diperbaiki: ID digabung menjadi satu) -->
                     <div id="ticketResult" class="hidden mt-8 border-2 border-dashed border-emerald-500 rounded-2xl bg-emerald-50/70 p-6 text-center relative">
                         <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full mb-2">TIKET ANTRIAN ONLINE</span>
-                        <h3 class="text-sm text-slate-600 font-semibold">DINPMP2KUKM KABUPATEN BANGKA</h3>
+                        <h3 class="text-sm text-slate-600 font-semibold leading-tight">DINPMP2KUKM MAL PELAYANAN PUBLIK<br/>KABUPATEN BANGKA</h3>
                         
                         <div class="my-4 py-3 bg-white rounded-xl border border-emerald-200 shadow-sm">
                             <p class="text-xs text-slate-500 uppercase font-semibold">Nomor Antrian Anda</p>
                             <div id="resNomor" class="text-5xl font-extrabold text-emerald-700 tracking-wider my-1">---</div>
-                            <p id="resLayananSingkat" class="text-xs text-slate-600 font-medium"></p>
+                            <p id="resLayananSingkat" class="text-xs text-slate-600 font-medium px-2"></p>
                         </div>
 
                         <div class="space-y-2 text-xs text-slate-700 border-t border-emerald-200 pt-4 text-left">
@@ -223,7 +229,6 @@
 
                         <p class="text-[11px] text-slate-500 italic mt-4 no-print">*Tunjukkan tiket digital ini atau cetakan tiket kepada petugas loket.</p>
 
-                        <!-- ACTION BUTTONS DIPERBARUI -->
                         <div class="flex flex-col sm:flex-row gap-2 mt-4 no-print id-action-buttons">
                             <button type="button" onclick="downloadTiket()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-1.5 transition">
                                 <i class="fa-solid fa-download"></i> Download Gambar
@@ -239,7 +244,6 @@
 
         <!-- TAB 2: PANEL ADMIN LOKET -->
         <div id="tab-admin" class="tab-content">
-            <!-- Modal / Form Auth Login Admin -->
             <div id="adminAuthBox" class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100 p-8">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-brand-50 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
@@ -264,16 +268,14 @@
                 </form>
             </div>
 
-            <!-- Area Panel Dashboard Admin (Tampil Setelah Login) -->
             <div id="adminDashboard" class="hidden space-y-6">
-                <!-- Header Control & Logout -->
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <h2 class="text-xl font-bold text-brand-500">PANEL UTAMA PETUGAS LOKET</h2>
                         </div>
-                        <p class="text-xs text-slate-500 mt-0.5">DINPMP2KUKM Kabupaten Bangka - Pengelolaan Antrian Real-Time</p>
+                        <p class="text-xs text-slate-500 mt-0.5">DINPMP2KUKM MAL PELAYANAN PUBLIK Kabupaten Bangka - Pengelolaan Antrian Real-Time</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="bukaModalGantiPassword()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
@@ -285,7 +287,6 @@
                     </div>
                 </div>
 
-                <!-- Summary Counter Badges -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                         <div>
@@ -325,7 +326,6 @@
                     </div>
                 </div>
 
-                <!-- Filter Controls -->
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap gap-4 items-center justify-between">
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="flex flex-col gap-1">
@@ -337,10 +337,10 @@
                             <label for="filterLayanan" class="text-xs font-bold text-slate-600">Filter Layanan:</label>
                             <select id="filterLayanan" onchange="muatDataAntrian()" class="px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-brand-500 bg-white">
                                 <option value="">-- Semua Layanan --</option>
-                                <option value="A">A - Perizinan Usaha (OSS)</option>
-                                <option value="B">B - Perizinan Non-Usaha</option>
-                                <option value="C">C - Konsultasi & Pengaduan</option>
-                                <option value="D">D - Layanan Lainnya</option>
+                                <option value="A">A - Perizinan (DINPMP2KUKM)</option>
+                                <option value="B">B - BPJS Kesehatan</option>
+                                <option value="C">C - Dinas Kesehatan</option>
+                                <option value="D">D - Dinas Perikanan</option>
                             </select>
                         </div>
                     </div>
@@ -352,7 +352,6 @@
                     </div>
                 </div>
 
-                <!-- Data Table -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -361,7 +360,7 @@
                                     <th class="p-3.5 pl-5">No. Antrian</th>
                                     <th class="p-3.5">Nama Pemohon</th>
                                     <th class="p-3.5">Alamat</th>
-                                    <th class="p-3.5">Layanan</th>
+                                    <th class="p-3.5 min-w-[200px]">Layanan</th>
                                     <th class="p-3.5">Status</th>
                                     <th class="p-3.5 text-center">Aksi Loket</th>
                                 </tr>
@@ -386,7 +385,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-6 mb-6 gap-4">
                     <div class="text-center md:text-left">
                         <h2 class="text-2xl font-extrabold text-amber-400 tracking-wide">LAYAR PANGGILAN ANTRIAN</h2>
-                        <p class="text-xs text-slate-400 mt-1">DINPMP2KUKM Kabupaten Bangka</p>
+                        <p class="text-xs text-slate-400 mt-1">DINPMP2KUKM MAL PELAYANAN PUBLIK Kabupaten Bangka</p>
                     </div>
                     <div id="currentTimeClock" class="text-xl font-mono font-bold bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700 text-emerald-400">
                         00:00:00 WIB
@@ -394,7 +393,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <!-- Kotak Antrian Sedang Dipanggil (Besar) -->
                     <div class="lg:col-span-7 bg-gradient-to-br from-brand-600 to-brand-700 rounded-2xl p-8 text-center border border-brand-500/50 shadow-inner flex flex-col justify-center items-center">
                         <span class="inline-block bg-amber-400 text-slate-900 font-extrabold text-xs px-4 py-1.5 rounded-full uppercase tracking-widest mb-4 animate-bounce">
                             Sedang Dipanggil
@@ -402,11 +400,10 @@
                         <div id="displayActiveNo" class="text-7xl md:text-8xl font-black tracking-wider text-white my-2">
                             ---
                         </div>
-                        <p id="displayActiveService" class="text-lg text-brand-100 font-medium mt-2">Belum ada panggilan active</p>
+                        <p id="displayActiveService" class="text-lg text-brand-100 font-medium mt-2 max-w-lg mx-auto">Belum ada panggilan active</p>
                         <p id="displayActiveName" class="text-sm text-slate-300 italic mt-1"></p>
                     </div>
 
-                    <!-- List Antrian Berikutnya -->
                     <div class="lg:col-span-5 bg-slate-800 rounded-2xl p-5 border border-slate-700">
                         <h3 class="text-sm font-bold text-slate-300 mb-4 pb-2 border-b border-slate-700 flex items-center justify-between">
                             <span><i class="fa-solid fa-list-ol text-amber-400 mr-2"></i>Antrian Menunggu Hari Ini</span>
@@ -453,7 +450,7 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-4 mt-auto no-print">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-            &copy; 2026 DINPMP2KUKM Kabupaten Bangka. Hak Cipta Dilindungi.
+            &copy; 2026 DINPMP2KUKM MAL PELAYANAN PUBLIK Kabupaten Bangka. Hak Cipta Dilindungi.
         </div>
     </footer>
 
@@ -472,7 +469,6 @@
 
         // Window Onload Initialization
         window.onload = function() {
-            // Set minimal date for datepicker to today
             const today = new Date().toISOString().split('T')[0];
             const tglInputPublik = document.getElementById('tanggal');
             const tglInputFilter = document.getElementById('filterTanggal');
@@ -485,7 +481,6 @@
                 tglInputFilter.value = today;
             }
 
-            // Real-time Clock for Display TV Tab
             setInterval(() => {
                 const clockEl = document.getElementById('currentTimeClock');
                 if (clockEl) {
@@ -494,7 +489,6 @@
                 }
             }, 1000);
 
-            // Periodically refresh queue data every 5 seconds
             setInterval(() => {
                 const activeTab = document.querySelector('.tab-content.active').id;
                 if (activeTab === 'tab-admin' && isAdminLoggedIn) {
@@ -506,10 +500,8 @@
         };
 
         function switchTab(tabName) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             
-            // Reset tab button styles
             const btnPublic = document.getElementById('tabBtn-public');
             const btnDisplay = document.getElementById('tabBtn-display');
             const btnAdmin = document.getElementById('tabBtn-admin');
@@ -521,14 +513,12 @@
                 if (b) b.className = `px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-semibold ${inactiveClass}`;
             });
 
-            // Show selected tab
             const targetTab = document.getElementById(`tab-${tabName}`);
             const targetBtn = document.getElementById(`tabBtn-${tabName}`);
 
             if (targetTab) targetTab.classList.add('active');
             if (targetBtn) targetBtn.className = `px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-sm font-semibold ${activeClass}`;
 
-            // Trigger specific actions when switching tabs
             if (tabName === 'admin' && isAdminLoggedIn) {
                 muatDataAntrian();
             } else if (tabName === 'display') {
@@ -546,17 +536,21 @@
             const nama = document.getElementById('nama').value;
             const alamat = document.getElementById('alamat').value;
             const whatsapp = document.getElementById('whatsapp').value;
+            
             const layananSelect = document.getElementById('layanan');
             const layananText = layananSelect.options[layananSelect.selectedIndex].text;
+            
+            const rincianLayanan = document.getElementById('rincianLayanan').value.trim();
+            const finalLayanan = rincianLayanan ? `${layananText} - ${rincianLayanan}` : layananText;
             const tanggal = document.getElementById('tanggal').value;
 
             const payload = {
                 action: "simpan",
                 nama: nama,
                 alamat: alamat,
-                nik: alamat, // Cadangan untuk kompatibilitas ke Sheet format lama
+                nik: alamat, // Cadangan kompatibilitas Sheet lama
                 whatsapp: whatsapp,
-                layanan: layananText,
+                layanan: finalLayanan, 
                 tanggal: tanggal
             };
 
@@ -574,13 +568,16 @@
                     document.getElementById('resNomor').innerText = data.nomorAntrian;
                     document.getElementById('resNama').innerText = nama;
                     document.getElementById('resAlamat').innerText = alamat; 
-                    document.getElementById('resLayanan').innerText = layananText;
-                    document.getElementById('resLayananSingkat').innerText = layananText;
+                    document.getElementById('resLayanan').innerText = finalLayanan;
+                    document.getElementById('resLayananSingkat').innerText = finalLayanan;
                     document.getElementById('resTanggal').innerText = formattedDate;
 
                     const resCard = document.getElementById('ticketResult');
                     resCard.classList.remove('hidden');
                     resCard.scrollIntoView({ behavior: 'smooth' });
+                    
+                    document.getElementById('rincianLayanan').value = '';
+                    layananSelect.selectedIndex = 0;
                 } else {
                     alertModal("Gagal mengambil nomor antrian: " + (data.message || 'Error tidak diketahui'));
                 }
@@ -673,10 +670,11 @@
                         return matchTanggal && matchLayanan;
                     });
 
-                    // Update Counters
                     let total = filteredData.length;
                     let menunggu = filteredData.filter(i => !i.status || i.status === 'Menunggu').length;
-                    let dipanggil = filteredData.filter(i => i.status === 'Dipanggil').length;
+                    
+                    // UPDATE LOGIC: Cek "Dipanggil" menggunakan startsWith karena kita akan attach Timestamp
+                    let dipanggil = filteredData.filter(i => i.status && i.status.startsWith('Dipanggil')).length;
                     let selesai = filteredData.filter(i => i.status === 'Selesai').length;
 
                     document.getElementById('statTotal').innerText = total;
@@ -691,15 +689,15 @@
 
                     filteredData.forEach(item => {
                         let badgeHtml = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Menunggu</span>';
-                        if (item.status === 'Dipanggil') {
+                        
+                        // UPDATE LOGIC: Periksa awalan kata "Dipanggil"
+                        if (item.status && item.status.startsWith('Dipanggil')) {
                             badgeHtml = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 animate-pulse">Dipanggil</span>';
                         } else if (item.status === 'Selesai') {
                             badgeHtml = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">Selesai</span>';
                         }
 
                         let formattedTanggal = parseTanggalSheet(item.tanggal);
-                        
-                        // Fallback jika tidak ada alamat, cari data nik, atau berikan strip
                         let alamatText = item.alamat || item.nik || '-';
 
                         tbody.innerHTML += `
@@ -738,7 +736,25 @@
                 window.speechSynthesis.speak(utterance);
             }
 
-            updateStatusKeServer(nomor, tanggal, 'Dipanggil');
+            // Menggunakan waktu normal WIB (Waktu Indonesia Barat / Asia/Jakarta) dengan format sortable YYYYMMDDHHmmss
+            const now = new Date();
+            const options = {
+                timeZone: 'Asia/Jakarta',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            const formatter = new Intl.DateTimeFormat('en-GB', options);
+            const parts = formatter.formatToParts(now);
+            let obj = {};
+            parts.forEach(p => obj[p.type] = p.value);
+            const wibTimestamp = `${obj.year}${obj.month}${obj.day}${obj.hour}${obj.minute}${obj.second}`;
+
+            updateStatusKeServer(nomor, tanggal, `Dipanggil_${wibTimestamp}`);
         }
 
         function selesaiAntrian(nomor, tanggal) {
@@ -772,7 +788,27 @@
                 .then(data => {
                     const todayData = data.filter(item => parseTanggalSheet(item.tanggal) === today);
                     
-                    const activeCall = todayData.filter(i => i.status === 'Dipanggil').pop();
+                    const calledItems = todayData.filter(i => i.status && i.status.startsWith('Dipanggil'));
+                    let activeCall = null;
+
+                    if (calledItems.length > 0) {
+                        let highestTimeStr = "";
+                        activeCall = calledItems[calledItems.length - 1]; // Fallback
+
+                        calledItems.forEach(item => {
+                            if (item.status.includes('_')) {
+                                const parts = item.status.split('_');
+                                if (parts.length >= 2) {
+                                    const timeVal = parts[1];
+                                    if (timeVal > highestTimeStr) {
+                                        highestTimeStr = timeVal;
+                                        activeCall = item;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
                     const waitingList = todayData.filter(i => !i.status || i.status === 'Menunggu');
 
                     const activeNoEl = document.getElementById('displayActiveNo');
@@ -804,7 +840,7 @@
                                         <span class="text-sm font-bold text-amber-300">${item.nomorAntrian}</span>
                                         <p class="text-[11px] text-slate-300">${item.nama}</p>
                                     </div>
-                                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-md">${item.layanan.split('-')[0].trim()}</span>
+                                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-md max-w-[150px] truncate" title="${item.layanan}">${item.layanan.split('-')[0].trim()}</span>
                                 </div>
                             `;
                         });
@@ -813,7 +849,6 @@
                 .catch(err => console.error("Error loading display TV data:", err));
         }
 
-        // Custom modal sebagai pengganti bawaan browser alert()
         function alertModal(msg) {
             document.getElementById('customAlertMessage').innerText = msg;
             document.getElementById('customAlertModal').classList.remove('hidden');
@@ -828,27 +863,22 @@
             const actionButtons = ticketEl.querySelector('.id-action-buttons');
             const infoText = ticketEl.querySelector('.italic.no-print');
             
-            // 1. Sembunyikan elemen tombol agar tidak ikut terfoto
             if(actionButtons) actionButtons.classList.add('hidden');
             if(infoText) infoText.classList.add('hidden');
             
-            // 2. Rapikan border sementara untuk hasil gambar yang lebih bagus
             ticketEl.classList.remove('border-dashed', 'border-2', 'border-emerald-500');
             ticketEl.classList.add('border', 'border-emerald-200');
 
-            // 3. Render div menjadi Canvas lalu jadikan gambar
             html2canvas(ticketEl, {
-                scale: 3, // Resolusi tinggi (HD)
-                backgroundColor: "#ecfdf5", // Warna latar belakang emerald-50
+                scale: 1.2, 
+                backgroundColor: "#ecfdf5", 
                 useCORS: true
             }).then(canvas => {
-                // Kembalikan tampilan tombol seperti semula
                 if(actionButtons) actionButtons.classList.remove('hidden');
                 if(infoText) infoText.classList.remove('hidden');
                 ticketEl.classList.add('border-dashed', 'border-2', 'border-emerald-500');
                 ticketEl.classList.remove('border', 'border-emerald-200');
 
-                // 4. Trigger proses download file PNG
                 const nomorAntrian = document.getElementById('resNomor').innerText;
                 const link = document.createElement('a');
                 link.download = `Tiket_Antrian_${nomorAntrian}.png`;
