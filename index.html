@@ -824,7 +824,7 @@
             // Memisahkan nomor antrian dengan koma agar dibaca lebih lambat dan hilangkan tanda strip (contoh A-001 menjadi A, 0, 0, 1)
             const nomorDieja = nomorTampil.replace('-', '').split('').join(', ');
             
-            const text = `Nomor antrean, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
+            const text = `Nomor antrian, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
             
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
