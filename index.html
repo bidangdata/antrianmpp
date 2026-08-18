@@ -165,7 +165,7 @@
                                     <option value="D">D - Dinas Sosial</option>
                                     <option value="E">E - Dinas Perikanan</option>
                                     <option value="F">F - Bank Sumsel Babel</option>
-                                    <option value="G">G - Layanan Samsat</option>
+                                    <option value="G">G - Samsat</option> <!-- Perubahan: Menghapus kata Layanan -->
                                     <option value="H">H - Dinas Kependudukan dan Catatan Sipil</option>
                                     <option value="I">I - Badan Pengelola Keuangan Aset Daerah</option>
                                     <option value="J">J - Perusahaan Daerah Air Minum Tirta Bangka</option>
@@ -350,7 +350,7 @@
                                 <option value="D">D - Dinas Sosial</option>
                                 <option value="E">E - Dinas Perikanan</option>
                                 <option value="F">F - Bank Sumsel Babel</option>
-                                <option value="G">G - Layanan Samsat</option>
+                                <option value="G">G - Samsat</option> <!-- Perubahan: Menghapus kata Layanan -->
                                 <option value="H">H - Dinas Kependudukan dan Catatan Sipil</option>
                                 <option value="I">I - Badan Pengelola Keuangan Aset Daerah</option>
                                 <option value="J">J - Perusahaan Daerah Air Minum Tirta Bangka</option>
@@ -580,29 +580,53 @@
                 body: JSON.stringify(payload)
             })
             .then(res => res.json())
-            .then(data => {
-                if (data.result === "success") {
-                    const dateParts = tanggal.split('-');
-                    const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            .then(postData => {
+                if (postData.result === "success") {
+                    // Ambil seluruh data ulang agar nomor antrian dihitung secara berurutan dan akurat per layanan
+                    return fetch(SCRIPT_URL)
+                        .then(res => res.json())
+                        .then(allData => {
+                            const result = computeSequenceNumbers(allData);
+                            const dataArray = result.processedData;
+                            const counters = result.counters;
+                            
+                            const dateStr = parseTanggalSheet(tanggal);
+                            const prefix = finalLayanan.charAt(0).toUpperCase();
+                            const key = `${dateStr}_${prefix}`;
+                            
+                            // Cari row yang baru tersimpan berdasarkan ID asli dari backend
+                            const newItem = dataArray.find(i => String(i.nomorAntrian) === String(postData.nomorAntrian) && parseTanggalSheet(i.tanggal) === dateStr);
+                            
+                            let computedNumber;
+                            if (newItem) {
+                                computedNumber = newItem.computedNomor;
+                            } else {
+                                // Jika ada delay caching dari backend, prediksi nomor selanjutnya secara otomatis
+                                computedNumber = (counters[key] || 0) + 1;
+                            }
 
-                    // Format nomor untuk disesuaikan prefix huruf layanannya
-                    const displayedNomor = formatNomorAntrian(data.nomorAntrian, finalLayanan);
+                            const dateParts = tanggal.split('-');
+                            const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
 
-                    document.getElementById('resNomor').innerText = displayedNomor;
-                    document.getElementById('resNama').innerText = nama;
-                    document.getElementById('resAlamat').innerText = alamat; 
-                    document.getElementById('resLayanan').innerText = finalLayanan;
-                    document.getElementById('resLayananSingkat').innerText = finalLayanan;
-                    document.getElementById('resTanggal').innerText = formattedDate;
+                            // Format nomor antrian menggunakan hasil hitungan frontend yang dijamin mulai dari 001
+                            const displayedNomor = formatNomorAntrian(computedNumber, finalLayanan);
 
-                    const resCard = document.getElementById('ticketResult');
-                    resCard.classList.remove('hidden');
-                    resCard.scrollIntoView({ behavior: 'smooth' });
-                    
-                    document.getElementById('rincianLayanan').value = '';
-                    layananSelect.selectedIndex = 0;
+                            document.getElementById('resNomor').innerText = displayedNomor;
+                            document.getElementById('resNama').innerText = nama;
+                            document.getElementById('resAlamat').innerText = alamat; 
+                            document.getElementById('resLayanan').innerText = finalLayanan;
+                            document.getElementById('resLayananSingkat').innerText = finalLayanan;
+                            document.getElementById('resTanggal').innerText = formattedDate;
+
+                            const resCard = document.getElementById('ticketResult');
+                            resCard.classList.remove('hidden');
+                            resCard.scrollIntoView({ behavior: 'smooth' });
+                            
+                            document.getElementById('rincianLayanan').value = '';
+                            layananSelect.selectedIndex = 0;
+                        });
                 } else {
-                    alertModal("Gagal mengambil nomor antrian: " + (data.message || 'Error tidak diketahui'));
+                    alertModal("Gagal mengambil nomor antrian: " + (postData.message || 'Error tidak diketahui'));
                 }
             })
             .catch(error => {
@@ -658,17 +682,19 @@
             document.getElementById('newPasswordInput').value = '';
         }
 
-        // Fungsi formatting untuk menyesuaikan kode depan layanan dengan nomor antrian
+        // PERUBAHAN: Fungsi formatting menjamin nomor menjadi 3 digit dengan tanda strip (contoh: A-001)
         function formatNomorAntrian(nomor, layanan) {
             if (!nomor) return '-';
-            nomor = String(nomor);
             const prefix = layanan ? layanan.charAt(0).toUpperCase() : '';
-            // Jika nomor sudah mengandung huruf di depannya, gantikan dengan huruf layanan
-            if (/^[A-Za-z]/.test(nomor)) {
-                return prefix + nomor.substring(1);
-            }
-            // Jika hanya angka, tambahkan huruf layanan di depannya
-            return prefix + nomor;
+            
+            // Ambil hanya angka dari nomor yang dikirim backend (jika backend mengirim 'A1' atau 'A-1', kita ambil '1')
+            let angkaSaja = String(nomor).replace(/[^0-9]/g, '');
+            if (!angkaSaja) angkaSaja = '1';
+            
+            // Tambahkan angka 0 di depan hingga panjangnya menjadi 3 digit
+            let formattedAngka = angkaSaja.padStart(3, '0');
+            
+            return prefix ? `${prefix}-${formattedAngka}` : formattedAngka;
         }
 
         function parseTanggalSheet(tglRaw) {
@@ -687,6 +713,22 @@
             return strTgl;
         }
 
+        // FUNGSI BARU: Menghitung ulang nomor urut agar dijamin 100% urut dari 1 untuk setiap kategori dan setiap tanggal
+        function computeSequenceNumbers(allData) {
+            let counters = {};
+            allData.forEach(item => {
+                const date = parseTanggalSheet(item.tanggal);
+                const prefix = item.layanan ? item.layanan.charAt(0).toUpperCase() : '';
+                const key = `${date}_${prefix}`;
+                
+                if (!counters[key]) counters[key] = 0;
+                counters[key]++;
+                
+                item.computedNomor = counters[key];
+            });
+            return { processedData: allData, counters: counters };
+        }
+
         function muatDataAntrian() {
             if (!isAdminLoggedIn) return;
 
@@ -696,11 +738,13 @@
             fetch(SCRIPT_URL)
                 .then(res => res.json())
                 .then(data => {
-                    currentQueueData = data; // Simpan ke variabel global untuk diakses Audio
+                    const result = computeSequenceNumbers(data);
+                    currentQueueData = result.processedData; // Simpan ke variabel global untuk diakses Audio
+                    
                     const tbody = document.getElementById('queueTable');
                     tbody.innerHTML = '';
 
-                    const filteredData = data.filter(item => {
+                    const filteredData = currentQueueData.filter(item => {
                         let itemTanggal = parseTanggalSheet(item.tanggal);
                         const matchTanggal = itemTanggal === filterTgl;
                         const matchLayanan = filterLayanan === "" || item.layanan.startsWith(filterLayanan);
@@ -733,7 +777,7 @@
 
                         let formattedTanggal = parseTanggalSheet(item.tanggal);
                         let alamatText = item.alamat || item.nik || '-';
-                        let displayedNomor = formatNomorAntrian(item.nomorAntrian, item.layanan);
+                        let displayedNomor = formatNomorAntrian(item.computedNomor, item.layanan);
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-slate-50 transition">
@@ -761,28 +805,34 @@
 
         function panggilAntrian(nomor, tanggal) {
             // Ambil data antrian spesifik dari data yg termuat
-            const item = currentQueueData.find(i => i.nomorAntrian === nomor && parseTanggalSheet(i.tanggal) === tanggal);
-            const layananLengkap = item ? item.layanan : "Layanan";
-            const nomorTampil = formatNomorAntrian(nomor, layananLengkap);
+            const item = currentQueueData.find(i => String(i.nomorAntrian) === String(nomor) && parseTanggalSheet(i.tanggal) === tanggal);
+            if (!item) {
+                alertModal("Data antrian tidak ditemukan.");
+                return;
+            }
+
+            const layananLengkap = item.layanan || "Layanan";
+            const nomorTampil = formatNomorAntrian(item.computedNomor, layananLengkap);
 
             // Format nama layanan tanpa kode A/B/C dan tanpa keterangan kurung agar enak didengar
-            // Misalnya: "A - Perizinan (DINPMP2KUKM)" -> "Perizinan"
             let namaLayanan = layananLengkap.split('-')[1] || layananLengkap;
             namaLayanan = namaLayanan.replace(/\s*\(.*?\)\s*/g, '').trim();
+            
+            // PERUBAHAN: Memastikan kata "layanan" tidak ikut dibacakan untuk semua nama layanan (Terutama Samsat)
+            namaLayanan = namaLayanan.replace(/layanan/gi, '').trim();
 
-            // Memisahkan nomor antrian dengan koma agar dibaca lebih lambat dan satu-persatu oleh TTS (contoh A001 menjadi A, 0, 0, 1)
-            const nomorDieja = nomorTampil.split('').join(', ');
-            // Kalimat formal bahasa Indonesia dengan sisipan nama loket tanpa kata pengumuman awal
+            // Memisahkan nomor antrian dengan koma agar dibaca lebih lambat dan hilangkan tanda strip (contoh A-001 menjadi A, 0, 0, 1)
+            const nomorDieja = nomorTampil.replace('-', '').split('').join(', ');
+            
             const text = `Nomor antrean, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
             
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'id-ID';
-                utterance.rate = 0.8; // Diperlambat sedikit lagi agar intonasi keseluruhan lebih santai
-                utterance.pitch = 1.2; // Pitch dinaikkan agar karakter suara condong ke wanita
+                utterance.rate = 0.8; 
+                utterance.pitch = 1.2; 
                 
-                // Mencari suara wanita (ID-ID) jika tersedia di browser pengguna
                 const voices = window.speechSynthesis.getVoices();
                 let selectedVoice = voices.find(v => 
                     v.lang.includes('id') && 
@@ -792,7 +842,6 @@
                      v.name.toLowerCase().includes('gadis'))
                 );
 
-                // Fallback jika tidak ada suara spesifik wanita, gunakan bahasa Indonesia bawaan
                 if (!selectedVoice) {
                     selectedVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id_ID');
                 }
@@ -853,7 +902,10 @@
             fetch(SCRIPT_URL)
                 .then(res => res.json())
                 .then(data => {
-                    const todayData = data.filter(item => parseTanggalSheet(item.tanggal) === today);
+                    const result = computeSequenceNumbers(data);
+                    const allDataProcessed = result.processedData;
+                    
+                    const todayData = allDataProcessed.filter(item => parseTanggalSheet(item.tanggal) === today);
                     
                     const calledItems = todayData.filter(i => i.status && i.status.startsWith('Dipanggil'));
                     let activeCall = null;
@@ -885,7 +937,7 @@
                     const countBadge = document.getElementById('displayCountBadge');
 
                     if (activeCall) {
-                        activeNoEl.innerText = formatNomorAntrian(activeCall.nomorAntrian, activeCall.layanan);
+                        activeNoEl.innerText = formatNomorAntrian(activeCall.computedNomor, activeCall.layanan);
                         activeServiceEl.innerText = activeCall.layanan;
                         activeNameEl.innerText = `Pemohon: ${activeCall.nama}`;
                     } else {
@@ -901,7 +953,7 @@
                     } else {
                         waitingListEl.innerHTML = '';
                         waitingList.forEach(item => {
-                            let itemNomorTampil = formatNomorAntrian(item.nomorAntrian, item.layanan);
+                            let itemNomorTampil = formatNomorAntrian(item.computedNomor, item.layanan);
                             waitingListEl.innerHTML += `
                                 <div class="bg-slate-700/60 p-3 rounded-xl border border-slate-600/50 flex items-center justify-between">
                                     <div>
