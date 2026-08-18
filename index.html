@@ -163,6 +163,13 @@
                                     <option value="B">B - BPJS Kesehatan</option>
                                     <option value="C">C - Dinas Kesehatan</option>
                                     <option value="D">D - Dinas Sosial</option>
+                                    <option value="E">E - Dinas Perikanan</option>
+                                    <option value="F">F - Bank Sumsel Babel</option>
+                                    <option value="G">G - Layanan Samsat</option>
+                                    <option value="H">H - Dinas Kependudukan dan Catatan Sipil</option>
+                                    <option value="I">I - Badan Pengelola Keuangan Aset Daerah</option>
+                                    <option value="J">J - Perusahaan Daerah Air Minum Tirta Bangka</option>
+                                    <option value="K">K - BPJS Ketenagakerjaan</option>
                                 </select>
                             </div>
                         </div>
@@ -341,6 +348,13 @@
                                 <option value="B">B - BPJS Kesehatan</option>
                                 <option value="C">C - Dinas Kesehatan</option>
                                 <option value="D">D - Dinas Sosial</option>
+                                <option value="E">E - Dinas Perikanan</option>
+                                <option value="F">F - Bank Sumsel Babel</option>
+                                <option value="G">G - Layanan Samsat</option>
+                                <option value="H">H - Dinas Kependudukan dan Catatan Sipil</option>
+                                <option value="I">I - Badan Pengelola Keuangan Aset Daerah</option>
+                                <option value="J">J - Perusahaan Daerah Air Minum Tirta Bangka</option>
+                                <option value="K">K - BPJS Ketenagakerjaan</option>
                             </select>
                         </div>
                     </div>
@@ -461,6 +475,7 @@
         // Admin Auth State
         let isAdminLoggedIn = false;
         let adminPasswordKey = "admin_app_pwd";
+        let currentQueueData = []; // Untuk referensi data antrian saat dipanggil
 
         // Initialize default password if not set
         if (!localStorage.getItem(adminPasswordKey)) {
@@ -497,6 +512,11 @@
                     muatDataDisplayTV();
                 }
             }, 5000);
+
+            // Trigger voice loading untuk memastikan Web Speech API siap
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
         };
 
         function switchTab(tabName) {
@@ -565,7 +585,10 @@
                     const dateParts = tanggal.split('-');
                     const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
 
-                    document.getElementById('resNomor').innerText = data.nomorAntrian;
+                    // Format nomor untuk disesuaikan prefix huruf layanannya
+                    const displayedNomor = formatNomorAntrian(data.nomorAntrian, finalLayanan);
+
+                    document.getElementById('resNomor').innerText = displayedNomor;
                     document.getElementById('resNama').innerText = nama;
                     document.getElementById('resAlamat').innerText = alamat; 
                     document.getElementById('resLayanan').innerText = finalLayanan;
@@ -635,6 +658,19 @@
             document.getElementById('newPasswordInput').value = '';
         }
 
+        // Fungsi formatting untuk menyesuaikan kode depan layanan dengan nomor antrian
+        function formatNomorAntrian(nomor, layanan) {
+            if (!nomor) return '-';
+            nomor = String(nomor);
+            const prefix = layanan ? layanan.charAt(0).toUpperCase() : '';
+            // Jika nomor sudah mengandung huruf di depannya, gantikan dengan huruf layanan
+            if (/^[A-Za-z]/.test(nomor)) {
+                return prefix + nomor.substring(1);
+            }
+            // Jika hanya angka, tambahkan huruf layanan di depannya
+            return prefix + nomor;
+        }
+
         function parseTanggalSheet(tglRaw) {
             if (!tglRaw) return '';
             let strTgl = String(tglRaw).trim();
@@ -660,6 +696,7 @@
             fetch(SCRIPT_URL)
                 .then(res => res.json())
                 .then(data => {
+                    currentQueueData = data; // Simpan ke variabel global untuk diakses Audio
                     const tbody = document.getElementById('queueTable');
                     tbody.innerHTML = '';
 
@@ -672,8 +709,6 @@
 
                     let total = filteredData.length;
                     let menunggu = filteredData.filter(i => !i.status || i.status === 'Menunggu').length;
-                    
-                    // UPDATE LOGIC: Cek "Dipanggil" menggunakan startsWith karena kita akan attach Timestamp
                     let dipanggil = filteredData.filter(i => i.status && i.status.startsWith('Dipanggil')).length;
                     let selesai = filteredData.filter(i => i.status === 'Selesai').length;
 
@@ -690,7 +725,6 @@
                     filteredData.forEach(item => {
                         let badgeHtml = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">Menunggu</span>';
                         
-                        // UPDATE LOGIC: Periksa awalan kata "Dipanggil"
                         if (item.status && item.status.startsWith('Dipanggil')) {
                             badgeHtml = '<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 animate-pulse">Dipanggil</span>';
                         } else if (item.status === 'Selesai') {
@@ -699,10 +733,11 @@
 
                         let formattedTanggal = parseTanggalSheet(item.tanggal);
                         let alamatText = item.alamat || item.nik || '-';
+                        let displayedNomor = formatNomorAntrian(item.nomorAntrian, item.layanan);
 
                         tbody.innerHTML += `
                             <tr class="hover:bg-slate-50 transition">
-                                <td class="p-3.5 pl-5 font-bold text-slate-800 text-sm">${item.nomorAntrian}</td>
+                                <td class="p-3.5 pl-5 font-bold text-slate-800 text-sm">${displayedNomor}</td>
                                 <td class="p-3.5 font-medium text-slate-700">${item.nama}</td>
                                 <td class="p-3.5 text-slate-600">${alamatText}</td>
                                 <td class="p-3.5 text-slate-600">${item.layanan}</td>
@@ -725,18 +760,50 @@
         }
 
         function panggilAntrian(nomor, tanggal) {
-            const text = `Nomor antrian ${nomor}, silakan menuju ke loket pelayanan`;
+            // Ambil data antrian spesifik dari data yg termuat
+            const item = currentQueueData.find(i => i.nomorAntrian === nomor && parseTanggalSheet(i.tanggal) === tanggal);
+            const layananLengkap = item ? item.layanan : "Layanan";
+            const nomorTampil = formatNomorAntrian(nomor, layananLengkap);
+
+            // Format nama layanan tanpa kode A/B/C dan tanpa keterangan kurung agar enak didengar
+            // Misalnya: "A - Perizinan (DINPMP2KUKM)" -> "Perizinan"
+            let namaLayanan = layananLengkap.split('-')[1] || layananLengkap;
+            namaLayanan = namaLayanan.replace(/\s*\(.*?\)\s*/g, '').trim();
+
+            // Memisahkan nomor antrian dengan koma agar dibaca lebih lambat dan satu-persatu oleh TTS (contoh A001 menjadi A, 0, 0, 1)
+            const nomorDieja = nomorTampil.split('').join(', ');
+            // Kalimat formal bahasa Indonesia dengan sisipan nama loket tanpa kata pengumuman awal
+            const text = `Nomor antrean, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
             
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'id-ID';
-                utterance.rate = 0.85;
-                utterance.pitch = 1.0;
+                utterance.rate = 0.8; // Diperlambat sedikit lagi agar intonasi keseluruhan lebih santai
+                utterance.pitch = 1.2; // Pitch dinaikkan agar karakter suara condong ke wanita
+                
+                // Mencari suara wanita (ID-ID) jika tersedia di browser pengguna
+                const voices = window.speechSynthesis.getVoices();
+                let selectedVoice = voices.find(v => 
+                    v.lang.includes('id') && 
+                    (v.name.toLowerCase().includes('female') || 
+                     v.name.toLowerCase().includes('perempuan') || 
+                     v.name.toLowerCase().includes('damayanti') || 
+                     v.name.toLowerCase().includes('gadis'))
+                );
+
+                // Fallback jika tidak ada suara spesifik wanita, gunakan bahasa Indonesia bawaan
+                if (!selectedVoice) {
+                    selectedVoice = voices.find(v => v.lang === 'id-ID' || v.lang === 'id_ID');
+                }
+
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+
                 window.speechSynthesis.speak(utterance);
             }
 
-            // Menggunakan waktu normal WIB (Waktu Indonesia Barat / Asia/Jakarta) dengan format sortable YYYYMMDDHHmmss
             const now = new Date();
             const options = {
                 timeZone: 'Asia/Jakarta',
@@ -793,7 +860,7 @@
 
                     if (calledItems.length > 0) {
                         let highestTimeStr = "";
-                        activeCall = calledItems[calledItems.length - 1]; // Fallback
+                        activeCall = calledItems[calledItems.length - 1];
 
                         calledItems.forEach(item => {
                             if (item.status.includes('_')) {
@@ -818,7 +885,7 @@
                     const countBadge = document.getElementById('displayCountBadge');
 
                     if (activeCall) {
-                        activeNoEl.innerText = activeCall.nomorAntrian;
+                        activeNoEl.innerText = formatNomorAntrian(activeCall.nomorAntrian, activeCall.layanan);
                         activeServiceEl.innerText = activeCall.layanan;
                         activeNameEl.innerText = `Pemohon: ${activeCall.nama}`;
                     } else {
@@ -834,10 +901,11 @@
                     } else {
                         waitingListEl.innerHTML = '';
                         waitingList.forEach(item => {
+                            let itemNomorTampil = formatNomorAntrian(item.nomorAntrian, item.layanan);
                             waitingListEl.innerHTML += `
                                 <div class="bg-slate-700/60 p-3 rounded-xl border border-slate-600/50 flex items-center justify-between">
                                     <div>
-                                        <span class="text-sm font-bold text-amber-300">${item.nomorAntrian}</span>
+                                        <span class="text-sm font-bold text-amber-300">${itemNomorTampil}</span>
                                         <p class="text-[11px] text-slate-300">${item.nama}</p>
                                     </div>
                                     <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded-md max-w-[150px] truncate" title="${item.layanan}">${item.layanan.split('-')[0].trim()}</span>
