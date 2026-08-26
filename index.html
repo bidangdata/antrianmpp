@@ -165,7 +165,7 @@
                                     <option value="D">D - Dinas Sosial</option>
                                     <option value="E">E - Dinas Perikanan</option>
                                     <option value="F">F - Bank Sumsel Babel</option>
-                                    <option value="G">G - Samsat</option> <!-- Perubahan: Menghapus kata Layanan -->
+                                    <option value="G">G - Samsat</option>
                                     <option value="H">H - Dinas Kependudukan dan Catatan Sipil</option>
                                     <option value="I">I - Badan Pengelola Keuangan Aset Daerah</option>
                                     <option value="J">J - Perusahaan Daerah Air Minum Tirta Bangka</option>
@@ -350,7 +350,7 @@
                                 <option value="D">D - Dinas Sosial</option>
                                 <option value="E">E - Dinas Perikanan</option>
                                 <option value="F">F - Bank Sumsel Babel</option>
-                                <option value="G">G - Samsat</option> <!-- Perubahan: Menghapus kata Layanan -->
+                                <option value="G">G - Samsat</option>
                                 <option value="H">H - Dinas Kependudukan dan Catatan Sipil</option>
                                 <option value="I">I - Badan Pengelola Keuangan Aset Daerah</option>
                                 <option value="J">J - Perusahaan Daerah Air Minum Tirta Bangka</option>
@@ -449,7 +449,7 @@
         </div>
     </div>
 
-    <!-- Custom Alert Modal pengganti fungsi native alert() -->
+    <!-- Custom Alert Modal -->
     <div id="customAlertModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
             <div class="w-12 h-12 bg-brand-100 text-brand-600 rounded-full flex items-center justify-center mx-auto text-xl shadow-inner">
@@ -475,14 +475,12 @@
         // Admin Auth State
         let isAdminLoggedIn = false;
         let adminPasswordKey = "admin_app_pwd";
-        let currentQueueData = []; // Untuk referensi data antrian saat dipanggil
+        let currentQueueData = []; 
 
-        // Initialize default password if not set
         if (!localStorage.getItem(adminPasswordKey)) {
             localStorage.setItem(adminPasswordKey, "adminkpt");
         }
 
-        // Window Onload Initialization
         window.onload = function() {
             const today = new Date().toISOString().split('T')[0];
             const tglInputPublik = document.getElementById('tanggal');
@@ -513,7 +511,6 @@
                 }
             }, 5000);
 
-            // Trigger voice loading untuk memastikan Web Speech API siap
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.getVoices();
             }
@@ -568,7 +565,7 @@
                 action: "simpan",
                 nama: nama,
                 alamat: alamat,
-                nik: alamat, // Cadangan kompatibilitas Sheet lama
+                nik: alamat, 
                 whatsapp: whatsapp,
                 layanan: finalLayanan, 
                 tanggal: tanggal
@@ -581,56 +578,33 @@
             })
             .then(res => res.json())
             .then(postData => {
-                if (postData.result === "success") {
-                    // Ambil seluruh data ulang agar nomor antrian dihitung secara berurutan dan akurat per layanan
-                    return fetch(SCRIPT_URL)
-                        .then(res => res.json())
-                        .then(allData => {
-                            const result = computeSequenceNumbers(allData);
-                            const dataArray = result.processedData;
-                            const counters = result.counters;
-                            
-                            const dateStr = parseTanggalSheet(tanggal);
-                            const prefix = finalLayanan.charAt(0).toUpperCase();
-                            const key = `${dateStr}_${prefix}`;
-                            
-                            // Cari row yang baru tersimpan berdasarkan ID asli dari backend
-                            const newItem = dataArray.find(i => String(i.nomorAntrian) === String(postData.nomorAntrian) && parseTanggalSheet(i.tanggal) === dateStr);
-                            
-                            let computedNumber;
-                            if (newItem) {
-                                computedNumber = newItem.computedNomor;
-                            } else {
-                                // Jika ada delay caching dari backend, prediksi nomor selanjutnya secara otomatis
-                                computedNumber = (counters[key] || 0) + 1;
-                            }
+                // TIKET HANYA DITERBITKAN JIKA SERVER SUNGGUH-SUNGGUH BERHASIL MENYIMPAN (result === "success")
+                if (postData.result === "success" && postData.nomorAntrian) {
+                    const dateParts = tanggal.split('-');
+                    const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
 
-                            const dateParts = tanggal.split('-');
-                            const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                    // Ambil nomor antrian langsung dari respons Apps Script
+                    const displayedNomor = formatNomorAntrian(postData.nomorAntrian, finalLayanan);
 
-                            // Format nomor antrian menggunakan hasil hitungan frontend yang dijamin mulai dari 001
-                            const displayedNomor = formatNomorAntrian(computedNumber, finalLayanan);
+                    document.getElementById('resNomor').innerText = displayedNomor;
+                    document.getElementById('resNama').innerText = nama;
+                    document.getElementById('resAlamat').innerText = alamat; 
+                    document.getElementById('resLayanan').innerText = finalLayanan;
+                    document.getElementById('resLayananSingkat').innerText = finalLayanan;
+                    document.getElementById('resTanggal').innerText = formattedDate;
 
-                            document.getElementById('resNomor').innerText = displayedNomor;
-                            document.getElementById('resNama').innerText = nama;
-                            document.getElementById('resAlamat').innerText = alamat; 
-                            document.getElementById('resLayanan').innerText = finalLayanan;
-                            document.getElementById('resLayananSingkat').innerText = finalLayanan;
-                            document.getElementById('resTanggal').innerText = formattedDate;
-
-                            const resCard = document.getElementById('ticketResult');
-                            resCard.classList.remove('hidden');
-                            resCard.scrollIntoView({ behavior: 'smooth' });
-                            
-                            document.getElementById('rincianLayanan').value = '';
-                            layananSelect.selectedIndex = 0;
-                        });
+                    const resCard = document.getElementById('ticketResult');
+                    resCard.classList.remove('hidden');
+                    resCard.scrollIntoView({ behavior: 'smooth' });
+                    
+                    document.getElementById('rincianLayanan').value = '';
+                    layananSelect.selectedIndex = 0;
                 } else {
-                    alertModal("Gagal mengambil nomor antrian: " + (postData.message || 'Error tidak diketahui'));
+                    alertModal("Mohon maaf, antrian sedang penuh/sibuk. Silakan coba tekan tombol ambil antrian sekali lagi.");
                 }
             })
             .catch(error => {
-                alertModal("Gagal terhubung ke server: " + error.message);
+                alertModal("Gagal terhubung ke server jaringan. Data antrian tidak tersimpan, mohon coba lagi.");
             })
             .finally(() => {
                 btnSubmit.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Ambil Nomor Antrian`;
@@ -682,18 +656,12 @@
             document.getElementById('newPasswordInput').value = '';
         }
 
-        // PERUBAHAN: Fungsi formatting menjamin nomor menjadi 3 digit dengan tanda strip (contoh: A-001)
         function formatNomorAntrian(nomor, layanan) {
             if (!nomor) return '-';
             const prefix = layanan ? layanan.charAt(0).toUpperCase() : '';
-            
-            // Ambil hanya angka dari nomor yang dikirim backend (jika backend mengirim 'A1' atau 'A-1', kita ambil '1')
             let angkaSaja = String(nomor).replace(/[^0-9]/g, '');
             if (!angkaSaja) angkaSaja = '1';
-            
-            // Tambahkan angka 0 di depan hingga panjangnya menjadi 3 digit
             let formattedAngka = angkaSaja.padStart(3, '0');
-            
             return prefix ? `${prefix}-${formattedAngka}` : formattedAngka;
         }
 
@@ -713,7 +681,6 @@
             return strTgl;
         }
 
-        // FUNGSI BARU: Menghitung ulang nomor urut agar dijamin 100% urut dari 1 untuk setiap kategori dan setiap tanggal
         function computeSequenceNumbers(allData) {
             let counters = {};
             allData.forEach(item => {
@@ -739,7 +706,7 @@
                 .then(res => res.json())
                 .then(data => {
                     const result = computeSequenceNumbers(data);
-                    currentQueueData = result.processedData; // Simpan ke variabel global untuk diakses Audio
+                    currentQueueData = result.processedData; 
                     
                     const tbody = document.getElementById('queueTable');
                     tbody.innerHTML = '';
@@ -804,7 +771,6 @@
         }
 
         function panggilAntrian(nomor, tanggal) {
-            // Ambil data antrian spesifik dari data yg termuat
             const item = currentQueueData.find(i => String(i.nomorAntrian) === String(nomor) && parseTanggalSheet(i.tanggal) === tanggal);
             if (!item) {
                 alertModal("Data antrian tidak ditemukan.");
@@ -814,17 +780,13 @@
             const layananLengkap = item.layanan || "Layanan";
             const nomorTampil = formatNomorAntrian(item.computedNomor, layananLengkap);
 
-            // Format nama layanan tanpa kode A/B/C dan tanpa keterangan kurung agar enak didengar
             let namaLayanan = layananLengkap.split('-')[1] || layananLengkap;
             namaLayanan = namaLayanan.replace(/\s*\(.*?\)\s*/g, '').trim();
-            
-            // PERUBAHAN: Memastikan kata "layanan" tidak ikut dibacakan untuk semua nama layanan (Terutama Samsat)
             namaLayanan = namaLayanan.replace(/layanan/gi, '').trim();
 
-            // Memisahkan nomor antrian dengan koma agar dibaca lebih lambat dan hilangkan tanda strip (contoh A-001 menjadi A, 0, 0, 1)
             const nomorDieja = nomorTampil.replace('-', '').split('').join(', ');
             
-            const text = `Nomor antrian, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
+            const text = `Nomor antrean, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
             
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
