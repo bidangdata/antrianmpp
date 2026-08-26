@@ -786,7 +786,7 @@
 
             const nomorDieja = nomorTampil.replace('-', '').split('').join(', ');
             
-            const text = `Nomor antrean, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
+            const text = `Nomor antrian, ${nomorDieja}. silahkan menuju ke loket layanan ${namaLayanan}.`;
             
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
